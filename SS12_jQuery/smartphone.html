@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartPhone Demo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"
+        integrity="sha512-3gJwYpMe3QewGELv8k/BX9vcqhryRdzRMxVfq6ngyWXwo03GFEzjsUm8Q7RZcHPHksttq7/GFoxjCVUjkjvPdw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<style>
+    #form {
+        padding: 10px;
+        margin: 20px auto;
+        width: 50%;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    table {
+        width: 70%;
+        margin: 0 auto;
+    }
+
+    h1 {
+        text-align: center;
+    }
+</style>
+
+<body>
+    <button onclick="showForm()">Them moi</button>
+    <form id="form">
+        <input type="hidden" id="id" name="id" placeholder="id">
+        <input type="text" id="model" name="model" placeholder="model">
+        <input type="text" id="price" name="price" placeholder="price">
+        <input type="text" id="producer" name="producer" placeholder="producer">
+        <button type="submit" id="submit">Create</button>
+    </form>
+    <h1>Danh sách</h1>
+    <table border="1" cellpadding="10" cellspacing="0">
+        <thead>
+            <tr>
+                <th>STT</th>
+                <th>Model</th>
+                <th>Producer</th>
+                <th>Price</th>
+                <th colspan="2">Action</th>
+            </tr>
+        <tbody id="display">
+        </tbody>
+        </thead>
+    </table>
+
+    <script>
+        let action = "create"
+        // mặc định form ẩn nên châm với phương thức hidden
+        $("#form").hide();
+        // bước đầu chạy
+        $(document).ready(function () {
+            getAll();
+            $("#form").submit((e) => {
+                e.preventDefault();
+                let id = $("#id").val();
+                let model = $("#model").val();
+                let producer = $("#producer").val();
+                let price = $("#price").val();
+                if (action === "create") {
+                    let newPhone = { model, producer, price };
+                    handleCreate(newPhone);
+                } else if (action === "update") {
+                    let newPhoneUpdate = { id, model, producer, price };
+                    handleUpdate(newPhoneUpdate);
+                }
+            })
+        })
+        // show Form
+        const showForm = () => {
+            $("#form").toggle();
+        }
+
+        // get phones
+        const getAll = () => {
+            $.ajax({
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                url: "http://localhost:8080/phones",
+                type: "GET",
+                success: function (data) {
+                    let view = data.reduce((temp, curr, index) => temp + `
+                    <tr>
+                <td>${index + 1}</td>
+                <td>${curr.model}</td>
+                <td>${curr.producer}</td>
+                <td>${curr.price}</td>
+                <td><button onClick="findById(${curr.id})">Edit</button></td>
+                <td><button onClick="handleDelete(${curr.id})">Delete</button></td>
+            </tr>`, ``);
+                    $("#display").html(view);
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            })
+        }
+
+
+        // findById
+        const findById = (id) => {
+            $.ajax({
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                url: `http://localhost:8080/phones/detail/${id}`,
+                type: "get",
+                success: function (data) {
+                    action = "update";
+                    $("#submit").text(action)
+                    $("#form").show();
+                    $("#id").val(data.id);
+                    $("#model").val(data.model);
+                    $("#producer").val(data.producer);
+                    $("#price").val(data.price);
+                    console.log(data)
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            })
+
+        }
+
+        // post phones
+
+        const handleCreate = (dataPost) => {
+            $.ajax({
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                url: "http://localhost:8080/phones/create",
+                type: "Post",
+                data: JSON.stringify(dataPost),
+                success: function (data) {
+                    getAll();
+                    $("#form").hide();
+                    resetPage();
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            })
+        }
+        // put phone
+        const handleUpdate = (dataUpdate) => {
+            $.ajax({
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                url: `http://localhost:8080/phones/update/${dataUpdate.id}`,
+                type: "Put",
+                data: JSON.stringify(dataUpdate),
+                success: function (data) {
+                    getAll();
+                    $("#form").hide();
+                    resetPage();
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            })
+        }
+        // delete phone
+        const handleDelete = (id) => {
+            $.ajax({
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                url: `http://localhost:8080/phones/delete/${id}`,
+                type: "Delete",
+                success: function (data) {
+                    getAll();
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            })
+        }
+
+        // reset lại trang
+        const resetPage = () => {
+            $("#model").val("");
+            $("#producer").val("");
+            $("#price").val("");
+        }
+    </script>
+</body>
+
+</html>
