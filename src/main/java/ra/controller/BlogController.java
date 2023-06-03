@@ -17,57 +17,73 @@ import java.util.Optional;
 public class BlogController {
     @Autowired
     private IBlogService blogService;
+
     @GetMapping
-    public ResponseEntity<Iterable<Blog>> findAllBlog(){
+    public ResponseEntity<Iterable<Blog>> findAllBlog() {
         List<Blog> blogs = (List<Blog>) blogService.findAll();
-        if (blogs.isEmpty()){
+        if (blogs.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }else {
-            return new ResponseEntity<>(blogs,HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(blogs, HttpStatus.OK);
         }
     }
+
     @PostMapping("/create")
-    public ResponseEntity<Blog> createBlog(@RequestBody Blog blog){
+    public ResponseEntity<Blog> createBlog(@RequestBody Blog blog) {
         Blog b = blogService.save(blog);
-        return new ResponseEntity<>(b,HttpStatus.CREATED);
+        return new ResponseEntity<>(b, HttpStatus.CREATED);
     }
+
     @PutMapping("/update/{id}")
-    public ResponseEntity<Blog> updateBlog(@PathVariable("id") Long id,@RequestBody Blog blog){
-        Optional<Blog> blogOptional= blogService.findById(id);
-        if (blogOptional.isPresent()){
+    public ResponseEntity<Blog> updateBlog(@PathVariable("id") Long id, @RequestBody Blog blog) {
+        Optional<Blog> blogOptional = blogService.findById(id);
+        if (blogOptional.isPresent()) {
             blog.setId(id);
             blogService.save(blog);
             return new ResponseEntity<>(HttpStatus.CREATED);
-        }else {
+        } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Blog> deleteBlog(@PathVariable("id") Long id){
+    public ResponseEntity<Blog> deleteBlog(@PathVariable("id") Long id) {
         Optional<Blog> blogOptional = blogService.findById(id);
-        if (blogOptional.isPresent()){
+        if (blogOptional.isPresent()) {
             blogService.delete(id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }else {
+        } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
     @GetMapping("/findBlogByCataId/{id}")
-    public ResponseEntity<Iterable<Blog>> findBlogByCataId(@PathVariable("id") Long id){
-        List<Blog> blogs= (List<Blog>) blogService.findBlogByCatalog_Id(id);
-        if (blogs.isEmpty()){
+    public ResponseEntity<Iterable<Blog>> findBlogByCataId(@PathVariable("id") Long id) {
+        List<Blog> blogs = (List<Blog>) blogService.findBlogByCatalog_Id(id);
+        if (blogs.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }else {
-            return new ResponseEntity<>(blogs,HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(blogs, HttpStatus.OK);
         }
     }
+
     @GetMapping("/{id}")
-    public ResponseEntity<Blog> findBlogById(@PathVariable("id") Long id){
-        Optional<Blog> blog= blogService.findById(id);
-        if (blog.isPresent()){
-            return new ResponseEntity<>(blog.get(),HttpStatus.OK);
-        }else {
+    public ResponseEntity<Blog> findBlogById(@PathVariable("id") Long id) {
+        Optional<Blog> blog = blogService.findById(id);
+        if (blog.isPresent()) {
+            return new ResponseEntity<>(blog.get(), HttpStatus.OK);
+        } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Blog>> findBlogByTitle(@RequestParam("title") String title) {
+       List<Blog> blogs = (List<Blog>) blogService.searchBlogByTitle(title);
+        if (blogs.isEmpty()) {
+            return new ResponseEntity<>( HttpStatus.NO_CONTENT);
+        } else {
+            return new ResponseEntity<>(blogs,HttpStatus.OK);
         }
     }
 }
